@@ -5,33 +5,135 @@ import { isObject } from './validators'
 
 
 export const createUploadMiddleware = new ApolloLink((operation, forward) => {
+  operation.setContext({fetchOptions: {formData: null}})
   if (typeof FormData !== 'undefined' && isObject(operation.variables)) {
     const { variables, files } = extractFiles(operation.variables)
-    console.log("*****************************************************************");
-    console.log("Context is?,",context)
+  
     if (files.length > 0) {
-      const context = operation.getContext()
-      const { headers: contextHeaders} = context
+     
       const formData = new FormData()
-      formData.append('operationName', print(operation.operationName))
+    //  formData.append('operationName', operation.operationName)
       formData.append('query', print(operation.query))
       formData.append('variables', JSON.stringify(variables))
-      files.forEach(({name, file}) => formData.append(name, file))
-      console.log("FormData******", formData)
-
-      // let options = {
-      //   method: 'POST',
-      //
-      //   body: formData,
-      //   credentials,
-      // }
-      //
-      // // add context.fetchOptions to fetch options
-      // options = Object.assign(context.fetchOptions || {}, options)
-
+      files.forEach(({name, file}) => {
+         
+        formData.append(name, {
+          uri: decodeURI(file.uri),
+          type: "application/pdf",
+          name: file.name
+        })
+      })
+     console.log("FormData", formData)
+      operation.setContext({fetchOptions: {formData}})
     }
+
   }
+ 
   return forward(operation)
 })
+
+export const customFetcher = (chosenURI, options) => {
+
+   if (options.formData) {
+     console.log("Swapping the body")
+     options.body = options.formData;
+     delete options.headers["content-type"];
+     options.formData = null;
+     console.log("**********************************************")
+     console.log("Final Body", options.body)
+    // console.log("Headers", options.headers)
+     console.log("**********************************************")
+  } else  {
+    console.log("**********************************************")
+    console.log("Final Body", options.body)
+    console.log("Headers", options.headers)
+    console.log("**********************************************")
+  }
+  return(localFetch(chosenURI, options))
+}
+function parseHeaders(rawHeaders) {
+  var headers = new Headers();
+  var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
+  preProcessedHeaders.split(/\r?\n/).forEach(function (line) {
+    var parts = line.split(':');
+    var key = parts.shift().trim();
+
+    if (key) {
+      var value = parts.join(':').trim();
+      headers.append(key, value);
+    }
+  });
+  return headers;
+}
+
+function localFetch(input, init) {
+  return new Promise(function (resolve, reject) {
+    var request = new Request(input, init);
+
+    if (request.signal && request.signal.aborted) {
+      return reject(new exports.DOMException('Aborted', 'AbortError'));
+    }
+
+    var xhr = new XMLHttpRequest();
+
+    function abortXhr() {
+      xhr.abort();
+    }
+
+    xhr.onload = function () {
+      var options = {
+        status: xhr.status,
+        statusText: xhr.statusText,
+        headers: parseHeaders(xhr.getAllResponseHeaders() || '')
+      };
+      console.log("****** Made it this far?")
+      options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
+      var body = 'response' in xhr ? xhr.response : xhr.responseText;
+      resolve(new Response(body, options));
+    };
+
+    xhr.onerror = function (e) {
+      console.log("Thjere was an errror",e)
+      reject(new TypeError('Network request failed'));
+    };
+
+    xhr.ontimeout = function () {
+      reject(new TypeError('Network request failed'));
+    };
+
+    xhr.onabort = function () {
+      reject(new exports.DOMException('Aborted', 'AbortError'));
+    };
+
+    xhr.open(request.method, request.url, true);
+
+    if (request.credentials === 'include') {
+      xhr.withCredentials = true;
+    } else if (request.credentials === 'omit') {
+      xhr.withCredentials = false;
+    }
+
+    if ('responseType' in xhr ) {
+      xhr.responseType = 'blob';
+    }
+
+    request.headers.forEach(function (value, name) {
+      xhr.setRequestHeader(name, value);
+    });
+
+    if (request.signal) {
+      request.signal.addEventListener('abort', abortXhr);
+
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          request.signal.removeEventListener('abort', abortXhr);
+        }
+      };
+    }
+
+    xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
+  });
+}
+
 
 export { ReactNativeFile } from './validators'
