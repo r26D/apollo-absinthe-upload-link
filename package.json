@@ -1,6 +1,6 @@
 {
   "name": "apollo-absinthe-upload-link",
-  "version": "1.5.0",
+  "version": "2.0.1",
   "description": "A network interface for Apollo that enables file-uploading to Absinthe back ends.",
   "main": "lib/index.js",
   "module": "src/index.js",
@@ -9,35 +9,19 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "compile": "yarn rimraf lib/* && yarn babel src -d lib && yarn rimraf lib/__tests__ && yarn rimraf lib/__mocks__",
+    "compile": "npx rimraf lib/* && npx babel src -d lib ",
     "prepublish": "npm run compile"
   },
   "dependencies": {
-    "apollo-client": "^2.0.4",
-    "apollo-link": "^1.0.7",
-    "apollo-link-http": "^1.3.2",
-    "apollo-link-http-common": "^0.2.4",
-    "graphql": "0.11.3",
-    "rxjs": "~6.2.2"
+    "apollo-client": "^2.6.8",
+    "apollo-link": "^1.2.13",
+    "graphql": "14.6.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-eslint": "^8.2.1",
-    "babel-jest": "^22.2.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-preset-env": "^1.6.1",
-    "eslint": "^4.14.0",
-    "eslint-plugin-prettier": "^2.4.0",
-    "fetch-mock": "^6.5.2",
-    "graphql-tag": "^2.9.2",
-    "jest": "^22.2.1",
-    "node-fetch": "^2.2.0",
-    "prettier": "1.9.2",
-    "regenerator-runtime": "^0.11.1",
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
     "rimraf": "^2.6.2"
-  },
-  "peerDependencies": {
-    "rxjs": ">=6.0.0"
   }
 }

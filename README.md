@@ -1,5 +1,3 @@
-[![Build Status](https://semaphoreci.com/api/v1/ihorkatkov/apollo-absinthe-upload-link/branches/master/badge.svg)](https://semaphoreci.com/ihorkatkov/apollo-absinthe-upload-link)
-
 # Apollo-Absinthe-Upload-Link
 
 A network interface for Apollo that enables file-uploading to Absinthe back
@@ -7,64 +5,24 @@ ends.
 
 ## Usage
 
-Install via yarn or npm and then use `createLink` from the package
-in the construction of your `ApolloClient`-instance.
-
+I simplified this to just be the middleware. That allows you to use other
+middleware to handle the other issues related to the request.
 ```js
 import ApolloClient from "apollo-client";
-import { createLink } from "apollo-absinthe-upload-link";
+import { createHttpLink } from "apollo-link-http";
+import { createUploadMiddleware } from "apollo-absinthe-upload-link";
+import {ApolloLink} from "apollo-link";
 
 const client = new ApolloClient({
-    link: createLink({
-        uri: "/graphql"
+  link: ApolloLink.from([createUploadMiddleware,
+    createHttpLink({
+      uri: "localhost:4000/graphqql",
+      credentials: "include"
     })
+])
 });
 ```
 
-### Custom headers
-
-Custom headers can be passed through options of the link. 
-
-```js
-import ApolloClient from "apollo-client";
-import { createLink } from "apollo-absinthe-upload-link";
-
-const headers = { authorization: 1234 } 
-const client = new ApolloClient({
-    link: createLink({
-        uri: "/graphql"
-    }),
-    headers,
-});
-```
-
-### Custom fetch
-
-You can use the fetch option when creating an apollo-absinthe-upload-link to do a lot of custom networking. This is useful if you want to modify the request based on the calculated headers or calculate the uri based on the operation.
-
-```js
-import ApolloClient from "apollo-client";
-import { createLink } from "apollo-absinthe-upload-link";
-
-const customFetch = (uri, options) => {
-  const { header } = Hawk.client.header(
-    "http://example.com:8000/resource/1?b=1&a=2",
-    "POST",
-    { credentials: credentials, ext: "some-app-data" }
-  );
-  options.headers.Authorization = header;
-  return fetch(uri, options);
-};
-
-const headers = { authorization: 1234 } 
-const client = new ApolloClient({
-    link: createLink({
-        uri: "/graphql"
-    }),
-    headers,
-    fetch: customFetch
-});
-```
 
 ### Usage with React Native
 
