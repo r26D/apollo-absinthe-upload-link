@@ -1,4 +1,4 @@
-import { ApolloLink } from 'apollo-link'
+import { ApolloLink } from '@apollo/client';
 import { print } from 'graphql/language/printer'
 import extractFiles from './extractFiles'
 import { isObject } from './validators'
@@ -19,11 +19,12 @@ export const createUploadMiddleware = new ApolloLink((operation, forward) => {
          
         formData.append(name, {
           uri: decodeURI(file.uri),
-          type: "application/pdf",
+          //type: "application/pdf",
+          type: file.type,
           name: file.name
         })
       })
-     console.log("FormData", formData)
+    // console.log("FormData", formData)
       operation.setContext({fetchOptions: {formData}})
     }
 
@@ -52,14 +53,14 @@ export const customFetcher = (chosenURI, options) => {
   return(localFetch(chosenURI, options))
 }
 function parseHeaders(rawHeaders) {
-  var headers = new Headers();
-  var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
+  const headers = new Headers();
+  const preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
   preProcessedHeaders.split(/\r?\n/).forEach(function (line) {
-    var parts = line.split(':');
-    var key = parts.shift().trim();
+    const parts = line.split(':');
+    const key = parts.shift().trim();
 
     if (key) {
-      var value = parts.join(':').trim();
+      const value = parts.join(':').trim();
       headers.append(key, value);
     }
   });
@@ -68,27 +69,27 @@ function parseHeaders(rawHeaders) {
 
 function localFetch(input, init) {
   return new Promise(function (resolve, reject) {
-    var request = new Request(input, init);
+    const request = new Request(input, init);
 
     if (request.signal && request.signal.aborted) {
       return reject(new exports.DOMException('Aborted', 'AbortError'));
     }
 
-    var xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
 
     function abortXhr() {
       xhr.abort();
     }
 
     xhr.onload = function () {
-      var options = {
+      const options = {
         status: xhr.status,
         statusText: xhr.statusText,
         headers: parseHeaders(xhr.getAllResponseHeaders() || '')
       };
       console.log("****** Made it this far?")
       options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
-      var body = 'response' in xhr ? xhr.response : xhr.responseText;
+      const body = 'response' in xhr ? xhr.response : xhr.responseText;
       resolve(new Response(body, options));
     };
 

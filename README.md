@@ -3,6 +3,8 @@
 A network interface for Apollo that enables file-uploading to Absinthe back
 ends.
 
+# This branch is for Apollo V3
+
 ## Usage
 
 I simplified this to just be the middleware. That allows you to use other
